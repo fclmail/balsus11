@@ -35,7 +35,7 @@
   <p><strong>Wallet:</strong> <span id="wallet">Not Connected</span></p>
 
   <input id="tokenAddress" placeholder="Token Address (e.g., WETH)" />
-  
+
   <select id="usdcAmount">
     <option value="0.001">Buy $0.001</option>
     <option value="1">Buy $1</option>
@@ -47,6 +47,8 @@
 
   <button onclick="buyToken()">Buy via Balancer</button>
   <button onclick="sellToken()">Sell via SushiSwap</button>
+  <button onclick="test0()">Test 0 Buy (Mock Test)</button>
+  <button onclick="testSell()">Test Sell (Small Token)</button>
 
   <h3>Balances</h3>
   <p>USDC: <span id="usdcBal">-</span></p>
@@ -241,3 +243,4 @@
   </script>
 </body>
 </html>
+
