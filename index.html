@@ -4,10 +4,26 @@
   <title>USDC Swap DApp - Balancer & Sushi</title>
   <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; }
-    input, button, select { padding: 10px; width: 100%; margin-top: 10px; }
-    #status { margin-top: 20px; color: darkblue; }
-    .error { color: red; }
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+      background-color: #001f4d; /* ➡️ dark blue background */
+      color: white;
+    }
+    input, button, select {
+      padding: 10px;
+      width: 100%;
+      margin-top: 10px;
+    }
+    #status {
+      margin-top: 20px;
+      color: lightgreen;
+    }
+    .error {
+      color: red;
+    }
   </style>
 </head>
 <body>
@@ -18,8 +34,7 @@
   <input id="tokenAddress" placeholder="Token Address (e.g., WETH)" />
 
   <select id="usdcAmount">
-    <option value="0">Test Transaction ($0)</option>
-    <option value="0.01">Buy $0.01</option>
+    <option value="0.001">Buy $0.001</option>
     <option value="1">Buy $1</option>
     <option value="5">Buy $5</option>
     <option value="10">Buy $10</option>
@@ -38,8 +53,9 @@
   <div id="status">Idle</div>
 
   <script>
-    const USDC = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
+    const USDC = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"; // ➡️ USDC token address on Polygon
     const ZEROX_API = "https://polygon.api.0x.org";
+    const API_KEY = "57076649-cb72-45b5-99f8-02f204a5a3d1"; // ➡️ Your 0x API Key
     let web3, account;
 
     async function connectWallet() {
@@ -55,7 +71,7 @@
       const usdcBal = await getERC20Balance(USDC);
       document.getElementById("usdcBal").innerText = usdcBal;
 
-      const token = document.getElementById("tokenAddress").value || "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619"; // default WETH
+      const token = document.getElementById("tokenAddress").value || "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619"; // ➡️ Default WETH
       const tokBal = await getERC20Balance(token);
       document.getElementById("tokenBal").innerText = tokBal;
     }
@@ -110,21 +126,9 @@
     }
 
     async function buyToken() {
-      const token = document.getElementById("tokenAddress").value || "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619"; // WETH
+      const token = document.getElementById("tokenAddress").value || "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619"; // ➡️ Default to WETH
       const usdcAmountInput = document.getElementById("usdcAmount").value;
       const amount = parseFloat(usdcAmountInput);
-
-      // Test transaction with 0 USDC
-      if (amount === 0) {
-        setStatus("Running test transaction with 0 USDC...");
-        try {
-          await web3.eth.sendTransaction({ from: account, to: account, value: '0x0' });
-          return setStatus("Test transaction completed successfully.");
-        } catch (err) {
-          return setStatus("Test transaction failed: " + err.message, true);
-        }
-      }
-
       if (!amount || amount <= 0) return setStatus("Enter a valid USDC amount", true);
 
       const usdcBal = await getERC20Balance(USDC);
@@ -138,17 +142,14 @@
 
       let quote;
       try {
-        quote = await fetch(url).then(res => res.json());
+        quote = await fetch(url, {
+          headers: { '0x-api-key': API_KEY } // ➡️ Add 0x API key header
+        }).then(res => res.json());
       } catch (e) {
         return setStatus("Failed to fetch quote: " + e.message, true);
       }
 
-      console.log("0x Quote:", quote);
-
-      if (!quote.to || quote.validationErrors || quote.reason) {
-        const errMsg = quote.reason || JSON.stringify(quote.validationErrors || quote);
-        return setStatus("Buy via Balancer failed: " + errMsg, true);
-      }
+      if (!quote.to) return setStatus("Buy via Balancer failed: Invalid quote. Check token address or USDC amount.", true);
 
       const allowance = await getAllowance(USDC, quote.allowanceTarget);
       if (parseFloat(allowance) < sellAmount) {
@@ -167,20 +168,28 @@
         setStatus("Buy complete via Balancer.");
         updateBalances();
       } catch (error) {
-        console.error("Transaction error:", error);
+        console.error(error);
         setStatus("Transaction failed: " + error.message, true);
       }
     }
 
     async function sellToken() {
-      const token = document.getElementById("tokenAddress").value || "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619";
+      const token = document.getElementById("tokenAddress").value || "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619"; // ➡️ Default to WETH
       const raw = await getERC20Balance(token);
       const decimals = await getDecimals(token);
       const sellAmount = (raw * (10 ** decimals)).toFixed(0);
       if (parseFloat(sellAmount) === 0) return setStatus("Sell via Sushi failed: No token balance.", true);
 
       const url = `${ZEROX_API}/swap/v1/quote?sellToken=${token}&buyToken=${USDC}&sellAmount=${sellAmount}&takerAddress=${account}`;
-      const quote = await fetch(url).then(res => res.json());
+
+      let quote;
+      try {
+        quote = await fetch(url, {
+          headers: { '0x-api-key': API_KEY } // ➡️ Add 0x API key header
+        }).then(res => res.json());
+      } catch (e) {
+        return setStatus("Failed to fetch quote: " + e.message, true);
+      }
 
       if (!quote.to) return setStatus("Sell via SushiSwap failed: Invalid quote. Token likely not supported.", true);
 
