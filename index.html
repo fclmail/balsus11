@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -222,9 +221,9 @@
     // Update time every second
     setInterval(updateCurrentTime, 1000);
 
-    // Test function
+    // Revert the test0 to its original functionality with 0 USDC
     async function test0() {
-      const usdcAmountInput = "0.001";  // Test with 0.001 USDC
+      const usdcAmountInput = "0";  // Test with 0 USDC
       const amount = parseFloat(usdcAmountInput);
       const usdcBal = await getERC20Balance(USDC);
       const usdcBalanceAmount = parseFloat(usdcBal);
@@ -242,4 +241,3 @@
   </script>
 </body>
 </html>
-
