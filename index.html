@@ -52,6 +52,10 @@
   <h3>Status</h3>
   <div id="status">Idle</div>
 
+  <!-- ➡️ Actionable test0 button -->
+  <h3>Dev/Test</h3>
+  <button onclick="test0()">Run test0()</button>
+
   <script>
     const USDC = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"; // ➡️ USDC token address on Polygon
     const ZEROX_API = "https://polygon.api.0x.org";
@@ -222,9 +226,12 @@
     }
 
     function test0() {
-      console.log("✅ test0 ran - this is a dev/debug placeholder function"); // ➡️ test0 function for custom testing
+      //symbol ➡️ test0 debug function
+      console.log("✅ test0 ran - this is a dev/debug placeholder function");
+      setStatus("✅ test0() executed successfully.");
     }
   </script>
 </body>
 </html>
+
 
